@@ -10,6 +10,8 @@
 //       "mapy": "375953218"
 //     }
 //클래스 모델 만들기
+import 'dart:convert';
+
 class Location {
   String title;
   String link;
@@ -34,17 +36,17 @@ class Location {
   });
 
   // 1. fromJson네임드 생성자 만들기
-  Location.fromJson(Map<String, dynamic> map)
+  Location.fromJson(Map<String, dynamic> json)
     : this(
-        title: map['title'],
-        link: map['link'],
-        category: map['category'],
-        description: map['description'],
-        telephone: map['telephone'],
-        address: map['address'],
-        roadAddress: map['roadAddress'],
-        mapx: map['mapx'],
-        mapy: map['mapy'],
+        title: json['title'],
+        link: json['link'],
+        category: json['category'],
+        description: json['description'],
+        telephone: json['telephone'],
+        address: json['address'],
+        roadAddress: json['roadAddress'],
+        mapx: json['mapx'],
+        mapy: json['mapy'],
       );
 
   // 2. toJson 메서드 만들기

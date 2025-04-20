@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:local_search_app/UI/detail/detail_page.dart';
+import 'package:local_search_app/UI/home/home_view_model.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   TextEditingController textEditingController = TextEditingController();
 
   void dispose() {
@@ -16,12 +19,15 @@ class _HomePageState extends State<HomePage> {
 
   //검색함수
   void onSearch(String text) {
-    //
+    // 홈뷰모델의 sercheLocations메서드 호출
+    ref.read(homeViewModelProvider.notifier).searchLocation(text);
     print('onSearch 호출됨');
   }
 
   @override
   Widget build(BuildContext context) {
+    final homeState = ref.watch(homeViewModelProvider);
+
     //빈 화면 터치 시 키보드가 내려가게
     return GestureDetector(
       onTap: () {
@@ -45,7 +51,9 @@ class _HomePageState extends State<HomePage> {
           ],
           title: TextField(
             maxLines: 1, //검색 수 하나
+
             controller: textEditingController,
+            onSubmitted: onSearch,
             //꾸미기
             decoration: InputDecoration(
               hintText: '검색어를 입력해 주세요',
@@ -66,33 +74,87 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
 
-        body: ListView.builder(
-          itemCount: 10,
-          itemBuilder: (context, index) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              margin: const EdgeInsets.all(20), //박스 밖 간격 조정
-              width: double.infinity,
-              height: 110,
-              padding: const EdgeInsets.all(16), //박스 안 간격 조정
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        body: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: ListView.builder(
+            itemCount: homeState.locations.length,
+            itemBuilder: (context, index) {
+              final location = homeState.locations[index];
 
-                children: [
-                  Text(
-                    'title: 삼성 1동 주민센터',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              return GestureDetector(
+                onTap: () {
+                  final url = location.link.trim();
+
+                  try {
+                    // https로 시작하는 유효한 링크일 경우만 DetailPage로 이동
+                    if (url.startsWith('https')) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => DetailPage(location)),
+                      );
+                    } else {
+                      // 링크가 유효하지 않으면 사용자에게 안내 메시지
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('상세 페이지가 제공되지 않는 장소입니다.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    // 예외 발생 시에도 앱이 죽지 않도록 처리
+                    debugPrint('상세페이지 이동 중 오류 발생: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('페이지를 열 수 없습니다.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.black12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 4),
-                  Text('category'),
-                  Text('roadAddress'),
-                ],
-              ),
-            );
-          },
+
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ), //박스 밖 간격 조정
+                  width: double.infinity,
+
+                  padding: const EdgeInsets.all(16), //박스 안 간격 조정
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+
+                    children: [
+                      Text(
+                        location.address,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        maxLines: 2,
+                      ),
+
+                      SizedBox(height: 4),
+                      Text(location.category, maxLines: 2),
+                      Text(location.roadAddress, maxLines: 2),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
