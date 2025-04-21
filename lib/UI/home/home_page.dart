@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:local_search_app/UI/detail/detail_page.dart';
 import 'package:local_search_app/UI/home/home_view_model.dart';
+import 'package:local_search_app/core/geolocator_helper.dart';
+import 'package:local_search_app/data/repository/vworld_repository.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   @override
@@ -38,7 +41,42 @@ class _HomePageState extends ConsumerState<HomePage> {
           actions: [
             // gps아이콘 터치시 추후 도전 기능 작성
             GestureDetector(
-              onTap: () {},
+              onTap: () async {
+                try {
+                  final position = await GeolocatorHelper.getPosition();
+
+                  if (position == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('위치 권한이 필요합니다. 설정에서 허용해주세요.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                    return;
+                  }
+
+                  await ref
+                      .read(homeViewModelProvider.notifier)
+                      .searchByLocation(position.latitude, position.longitude);
+
+                  final addressList = await VworldRepository().findByLatLng(
+                    position.latitude,
+                    position.longitude,
+                  );
+                  if (addressList.isNotEmpty) {
+                    textEditingController.text = addressList.first;
+                  }
+                } catch (e) {
+                  debugPrint('위치 검색 실패: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('위치 정보를 가져올 수 없습니다.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+
               //버튼의 터치영역은 44디바이스 픽셀 이상 추천
               child: Container(
                 width: 50,
