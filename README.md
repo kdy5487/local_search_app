@@ -1,16 +1,14 @@
-# local_search_app
+# 프로젝트 개요
 
-A new Flutter project.
+## 지역 검색 앱(local_search_app)
 
-## Getting Started
+## 기능
 
-This project is a starting point for a Flutter application.
+* 사용자가 원하는 지역을 검색하여 주소를 알아낼 수 있음.
+* 해당 주소가 지원하는 링크를 접속할 수 있음.
+* GPS기능으로 자신의 주소를 검색할 수 있음.
+  
+## API
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+* 검색기능은 네이버 검색 Open API를 통해 검색함.
+* VWORLD API에서 위도/경도를 통해 주소를 가져와 네이버 검색 API로 요청하도록 함.
